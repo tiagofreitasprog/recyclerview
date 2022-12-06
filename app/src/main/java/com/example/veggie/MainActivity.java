@@ -42,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,13 +54,17 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerViewAdapter rc;
     private Carrinho carrinho;
     private RecyclerViewCarrinhoAdapter rcCarrinho;
-    private List<Carrinho> carrinho_lista;
+    private ArrayList<Carrinho> carrinho_lista;
     ItemClickListener itemClickListener;
-
+    DecimalFormat df;
+    private TextView valor_final_txt;
+    public double valor_final;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        df = new DecimalFormat();
         setContentView(R.layout.activity_main);
         carrinho_lista = new ArrayList<>();
         Carrinho carrinho = new Carrinho("A","A","A","A");
@@ -72,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         rc = new RecyclerViewAdapter((ArrayList<DataProdutos>) listaDefault(),itemClickListener,this);
 
+        valor_final_txt = findViewById(R.id.valor_total);
 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(rc);
@@ -94,15 +100,27 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClickBtn(int position, DataProdutos value) {
-                int pos = getCategoryPos(carrinho.getId_produto());
+                valor_final = valor_final + Double.parseDouble(value.getPreco());
 
-                carrinho.setProduto(value.getNome());
-                carrinho.setPreco(value.getPreco());
-                carrinho.setQuantidade(value.getQuantidade());
-                carrinho_lista.add(carrinho);
+                Log.d("Posição", String.valueOf(position));
+                Log.d("Carrinho_lista",carrinho_lista.toString());
+                Log.d("Carrinho:", String.valueOf(carrinho));
+                if(carrinho_lista.equals(carrinho)) {
+                    carrinho_lista.remove(carrinho.getProduto());
+                    Log.d("Carrinho igual", "Carrinho igual");
+                    carrinho.setProduto(value.getNome());
+                    carrinho.setPreco(value.getPreco());
+                    carrinho.setQuantidade(value.getQuantidade());
+                    carrinho_lista.add(carrinho);
+                }else{
+                    Log.d("Carrinho igual", "Novo produto");
+                    carrinho.setProduto(value.getNome());
+                    carrinho.setPreco(value.getPreco());
+                    carrinho.setQuantidade(value.getQuantidade());
+                    carrinho_lista.add(carrinho);
 
-                Log.d("Carrinho posicao" , carrinho_lista.toString());
-
+                }
+                valor_final_txt.setText(df.format(valor_final)  + " €");
                 rcCarrinho.notifyDataSetChanged();
 
             }
@@ -111,9 +129,6 @@ public class MainActivity extends AppCompatActivity {
         volleyGet();
 
 
-    }
-    private int getCategoryPos(String category) {
-        return carrinho_lista.indexOf(category);
     }
     public List listaDefault(){
         DataProdutos produtos;
